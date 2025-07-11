@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SkinPharma - Giriş Yap 🌿</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #a7f3d0, #6ee7b7);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+    .login-container {
+      background-color: #f0fdfa;
+      padding: 2.5rem 2rem;
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+    .login-container:hover {
+      transform: scale(1.03);
+    }
+    h1 {
+      color: #065f46;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+      font-size: 2.5rem;
+      letter-spacing: 0.06em;
+    }
+    p.description {
+      color: #047857;
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+    label {
+      display: block;
+      text-align: left;
+      color: #065f46;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      margin-top: 1rem;
+      font-size: 1rem;
+    }
+    input[type="text"], select {
+      width: 100%;
+      padding: 0.65rem 0.8rem;
+      border-radius: 0.75rem;
+      border: 2px solid #34d399;
+      outline-offset: 2px;
+      outline-color: #6ee7b7;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    input[type="text"]:focus, select:focus {
+      border-color: #059669;
+    }
+    button {
+      margin-top: 2.2rem;
+      background-color: #34d399;
+      color: #065f46;
+      font-weight: 700;
+      padding: 0.85rem 1.75rem;
+      border-radius: 1.25rem;
+      width: 100%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(52, 211, 153, 0.45);
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #22c55e;
+    }
+    .error-message {
+      color: #dc2626;
+      margin-top: 1rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container" role="main" aria-label="SkinPharma Giriş Formu">
+    <h1>SkinPharma 🌿</h1>
+    <p class="description">Cilt tipinize uygun ürünler keşfetmek için giriş yapın! 💧✨</p>
+
+    <form id="loginForm" novalidate>
+      <label for="username">🧑‍⚕️ Kullanıcı Adı</label>
+      <input type="text" id="username" name="username" placeholder="Adınızı girin" autocomplete="off" required aria-required="true" />
+
+      <label for="skinType">💆‍♀️ Cilt Tipiniz</label>
+      <select id="skinType" name="skinType" required aria-required="true">
+        <option value="" disabled selected>Seçiniz</option>
+        <option value="yagli">Yağlı</option>
+        <option value="kuru">Kuru</option>
+        <option value="karma">Karma</option>
+        <option value="hassas">Hassas</option>
+        <option value="normal">Normal</option>
+        <option value="cocuk">Çocuk</option>
+        <option value="tumu">Tümü</option>
+      </select>
+
+      <div id="error" class="error-message" aria-live="polite" role="alert"></div>
+
+      <button type="submit" aria-label="Giriş yap">Giriş Yap 🚀</button>
+    </form>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const errorDiv = document.getElementById('error');
+
+    loginForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const username = loginForm.username.value.trim();
+      const skinType = loginForm.skinType.value;
+
+      if (!username || !skinType) {
+        errorDiv.textContent = 'Lütfen tüm alanları doldurun! ⚠️';
+        return;
+      }
+
+      localStorage.setItem('skinpharmaUser', JSON.stringify({ username, skinType }));
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>

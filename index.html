@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SkinPharma - Cilt Tipine Göre OTC Ürünler</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #89eece 0%, #a7f3d0 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #1f2937; /* koyu gri */
+      min-height: 100vh;
+    }
+    h1 {
+      color: #0f172a; /* daha koyu */
+    }
+    .subtitle {
+      color: #2563eb;
+      font-weight: 600;
+    }
+    label {
+      color: #3b82f6;
+      font-weight: 600;
+    }
+    select, input[type="text"], textarea {
+      border: 2px solid #3b82f6;
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      outline-offset: 3px;
+      outline-color: #60a5fa;
+      transition: outline-color 0.3s ease, border-color 0.3s ease;
+      font-size: 1rem;
+    }
+    select:focus, input[type="text"]:focus, textarea:focus {
+      outline-color: #2563eb;
+      border-color: #2563eb;
+    }
+    button {
+      background-color: #2563eb;
+      color: white;
+      font-weight: 700;
+      padding: 0.85rem 1.5rem;
+      border-radius: 1rem;
+      width: 100%;
+      font-size: 1.1rem;
+      box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
+      cursor: pointer;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    button:hover {
+      background-color: #1e40af;
+      box-shadow: 0 8px 20px rgba(30, 64, 175, 0.6);
+    }
+    #suggestions div {
+      background-color: #e0f2fe;
+      padding: 8px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid #bae6fd;
+      transition: background-color 0.3s ease;
+      user-select: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    #suggestions div:hover {
+      background-color: #bfdbfe;
+    }
+    .hidden {
+      display: none;
+    }
+    .result-card {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1.2rem 1.5rem;
+      border-radius: 1rem;
+      background-color: #f1f5f9;
+      border: 2px solid #93c5fd;
+      box-shadow: 0 6px 15px rgba(59, 130, 246, 0.25);
+      color: #1e293b;
+    }
+    .result-card img {
+      width: 120px;
+      border-radius: 1rem;
+      box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
+      align-self: center;
+    }
+    .result-header {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-transform: capitalize;
+      text-align: center;
+      color: #1e3a8a;
+    }
+    .message-red {
+      color: #dc2626;
+      font-weight: 600;
+      margin-top: 1rem;
+      text-align: center;
+    }
+    .message-green {
+      color: #16a34a;
+      font-weight: 600;
+      margin-top: 1rem;
+      text-align: center;
+    }
+    .suggestion-list {
+      list-style-type: disc;
+      margin-left: 1.2rem;
+      margin-top: 0.5rem;
+      color: #2563eb;
+      font-weight: 600;
+    }
+    .btn-back {
+      margin-top: 1rem;
+      background-color: #ef4444;
+      color: white;
+      font-weight: 700;
+      padding: 0.7rem 1.2rem;
+      border-radius: 0.8rem;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+    }
+    .btn-back:hover {
+      background-color: #b91c1c;
+      box-shadow: 0 6px 18px rgba(185, 28, 28, 0.6);
+    }
+  </style>
+</head>
+<body>
+  <div class="max-w-3xl mx-auto py-12 px-8">
+    <h1 class="text-5xl font-extrabold text-center mb-6">SkinPharma</h1>
+    <p id="welcomeMsg" class="text-center text-lg mb-8 subtitle"></p>
+
+    <div id="form-section" class="bg-white p-8 rounded-lg shadow-lg">
+      <form id="productForm" class="space-y-6">
+        <label for="skinType">Cilt Tipiniz:</label>
+        <select id="skinType" required>
+          <option value="">Seçiniz</option>
+          <option value="yagli">Yağlı</option>
+          <option value="kuru">Kuru</option>
+          <option value="karma">Karma</option>
+          <option value="hassas">Hassas</option>
+          <option value="normal">Normal</option>
+          <option value="cocuk">Çocuk</option>
+          <option value="tumu">Tümü</option>
+        </select>
+
+        <label for="productInput">Kullandığınız Ürün:</label>
+        <input type="text" id="productInput" placeholder="örn. La Roche-Posay Effaclar" autocomplete="off" required />
+        <div id="suggestions" class="rounded shadow mt-1"></div>
+
+        <button type="submit">Analiz Et</button>
+      </form>
+    </div>
+
+    <div id="result-section" class="hidden bg-white p-8 rounded-lg shadow-lg mt-8">
+      <h2 class="result-header">Ürün Bilgisi</h2>
+      <div id="resultCard" class="result-card"></div>
+      <button onclick="goBack()" class="btn-back">Yeni Analiz</button>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const userData = localStorage.getItem('skinpharmaUser');
+      if (!userData) {
+        window.location.href = 'login.html';
+        return;
+      }
+      const { username, skinType } = JSON.parse(userData);
+      document.getElementById('welcomeMsg').textContent = `Hoşgeldin, ${username}! Cilt Tipin: ${skinType.charAt(0).toUpperCase() + skinType.slice(1)}`;
+      document.getElementById('skinType').value = skinType;
+    });
+
+    const productDB = {
+      "bepanthol krem": {
+        info: "Yoğun nemlendirici, hassas ve kuru ciltler için uygundur.",
+        suitable: ["kuru", "hassas", "normal"],
+        alternatives: ["CeraVe Moisturizing Cream", "Mustela Hydra Bebe"],
+        image: "https://images.app.goo.gl/yo4oZsFj6XfuhQqr8"
+      },
+      "la roche-posay effaclar": {
+        info: "Yağlı ve akne eğilimli ciltler için temizleyici jel.",
+        suitable: ["yagli", "karma"],
+        alternatives: ["Bioderma Sebium", "Simple Refreshing Gel"],
+        image: "https://cdn.laroche-posay.com.tr/website/ecommerce/effaclar_gel.jpg"
+      },
+      "cerave moisturizing cream": {
+        info: "Yoğun nemlendirme sağlar, kuru ve hassas ciltler için uygundur.",
+        suitable: ["kuru", "hassas", "normal"],
+        alternatives: ["Bepanthol Krem", "Mustela Hydra Bebe"],
+        image: "https://www.cerave.com/on/demandware.static/-/Sites-cerave-master-catalog/default/dw0c769f4f/images/hi-res/CM_HYDRATING_FACE_MOISTURIZER_2oz_Front.png"
+      },
+      "bioderma sebium": {
+        info: "Yağlı ve karma ciltler için özel temizleyici.",
+        suitable: ["yagli", "karma"],
+        alternatives: ["La Roche-Posay Effaclar", "Simple Refreshing Gel"],
+        image: "https://www.bioderma.com.tr/sites/default/files/styles/product/public/2019-10/sebium-gel-moussant.png"
+      },
+      "mustela hydra bebe": {
+        info: "Hassas bebek cildi için nazik nemlendirici.",
+        suitable: ["hassas", "normal"],
+        alternatives: ["Bepanthol Krem", "CeraVe Moisturizing Cream"],
+        image: "https://www.mustela.com.tr/media/catalog/product/cache/9d9d254e1d178bece85ecbd14a3bcfef/h/y/hydra-bebe-creme-corps.jpg"
+      },
+      "simple refreshing gel": {
+        info: "Hafif jel temizleyici, tüm cilt tipleri için uygun.",
+        suitable: ["yagli", "karma", "normal", "kuru"],
+        alternatives: ["La Roche-Posay Effaclar", "Bioderma Sebium"],
+        image: "https://cdn.simple.com/product_images/refreshing-gel.png"
+      },
+      "neutrogena el kremi": {
+    info: "Kuru ve çatlamış elleri yoğun şekilde nemlendiren krem. Hızlı emilir ve yağlı his bırakmaz.",
+    suitable: ["kuru", "hassas", "normal"],
+    alternatives: ["Bepanthol El Kremi", "La Roche-Posay Cicaplast Hands"],
+    image: "https://i.imgur.com/XBNJTx2.jpg"
+  },
+  "cerave köpüren temizleyici": {
+    info: "Cildi kurutmadan nazikçe temizler. Özellikle yağlı ve akneye meyilli ciltler için idealdir.",
+    suitable: ["yagli", "karma"],
+    alternatives: ["La Roche-Posay Effaclar Jel", "Simple Refreshing Facial Wash"],
+    image: "https://i.imgur.com/NCL8cDN.jpg"
+  },
+  "bioderma photoderm spot spf 50+": {
+    info: "Leke eğilimli ciltler için yüksek korumalı güneş kremi. Renkli veya renksiz versiyonları mevcuttur.",
+    suitable: ["hassas", "karma", "normal"],
+    alternatives: ["La Roche-Posay Anthelios Age Correct", "Avene Cleanance Solaire SPF 50+"],
+    image: "https://i.imgur.com/GQubtxP.jpg"
+  },
+  "bioderma photoderm max spf50+": {
+  info: "Geniş spektrumlu UVA/UVB koruması sağlar, leke karşıtı etkilidir. Tüm cilt tipleri için uygundur.",
+  suitable: ["yagli", "kuru", "karma", "hassas", "normal"],
+  alternatives: ["La Roche-Posay Anthelios SPF50+", "Solante Acnes SPF50+"],
+  image: "https://cdn.sorsware.com/bioderma/bioderma-photoderm-spot-age-spf50-gunes-koruyucu-40-ml-75450-51-O.webp"
+},
+"solante acnes spf50+": {
+  info: "Akneye eğilimli ciltler için özel geliştirilmiş, matlaştırıcı etkili güneş koruyucu.",
+  suitable: ["yagli", "karma"],
+  alternatives: ["Bioderma Photoderm AKN Mat", "Roc Oil Control SPF50"],
+  image: "https://www.solante.com.tr/images/urunler/solante-acnes.jpg"
+},
+"la roche-posay anthelios spf50+": {
+  info: "Hipoalerjenik formülüyle hassas ciltler için ideal, yağsız ve iz bırakmayan yapıdadır.",
+  suitable: ["hassas", "kuru", "normal"],
+  alternatives: ["Bioderma Photoderm Max", "Vichy Capital Soleil"],
+  image: "https://cdn.laroche-posay.com.tr/website/ecommerce/anthelios.jpg"
+},
+"banana boat light weight spf50": {
+  info: "Ekonomik ve hafif yapılı güneş koruyucu. Günlük kullanım için idealdir.",
+  suitable: ["normal", "karma", "yagli"],
+  alternatives: ["Solante Acnes SPF50+", "Sebamed Sun Lotion"],
+  image: "https://m.media-amazon.com/images/I/71kBt7gZG-L._AC_SL1500_.jpg"
+},
+"sebamed sun lotion spf50": {
+  info: "PH 5.5 dengesiyle cildi tahriş etmeden koruyan medikal güneş kremidir.",
+  suitable: ["hassas", "kuru", "normal"],
+  alternatives: ["La Roche-Posay Anthelios", "Bioderma Photoderm"],
+  image: "https://productimages.hepsiburada.net/s/118/500/110000063376059.jpg"
+},
+"eucerin oil control spf50+": {
+  info: "Yağlı ve akne eğilimli ciltler için geliştirilmiş matlaştırıcı güneş kremi.",
+  suitable: ["yagli", "karma"],
+  alternatives: ["Solante Acnes", "Roc Oil Control SPF50"],
+  image: "https://www.eucerin.com.tr/-/media/eucerin/local/tr/products/sun/oil-control-gel-cream-spf-50-plus/oil-control-gel-cream-spf50plus.png"
+},
+"vichy capital soleil spf50": {
+  info: "Termal su içeren formülüyle cildi yatıştırır. UVB/UVA filtreleme sistemiyle koruma sağlar.",
+  suitable: ["normal", "hassas", "kuru"],
+  alternatives: ["La Roche-Posay Anthelios", "Bioderma Max"],
+  image: "https://www.vichy.com.tr/on/demandware.static/-/Sites-vichy-tr-Library/default/dw9d8ec08d/2021-products/suncare/capital-soleil/capital-soleil-spf50-300x300.png"
+},
+"daylong ultra spf50+": {
+  info: "Uzun süreli koruma sağlayan suya dayanıklı güneş kremi. Özellikle hassas ciltler için.",
+  suitable: ["hassas", "kuru"],
+  alternatives: ["Eucerin Sensitive Protect", "Sebamed Sun Lotion"],
+  image: "https://www.daylong.com.tr/sites/g/files/wax721/f/styles/product/public/product/ultra-spf-50-plus-gel-fluid_0.png"
+},
+"watsons daily sun lotion spf50": {
+  info: "Uygun fiyatlı ve geniş cilt tipi uyumluluğu sunan günlük güneş koruyucu.",
+  suitable: ["yagli", "kuru", "karma", "normal"],
+  alternatives: ["Banana Boat SPF50", "Sebamed SPF50"],
+  image: "https://cdn.watsons.com.tr/Watsons-tr/media/pim/303830/Watsons-Daily-Sun-Protection-SPF50-100ml-303830.jpg"
+},
+"dermed sunblock spf50+": {
+  info: "Yerli üretim uygun fiyatlı güneş koruyucu. Geniş spektrumlu koruma sağlar.",
+  suitable: ["normal", "karma", "yagli"],
+  alternatives: ["Watsons Daily Sun", "Banana Boat SPF50"],
+  image: "https://www.dermed.com.tr/images/urunler/dermed_spf50.jpg"
+},
+"cerave nemlendirici krem": {
+  info: "Seramid ve hyaluronik asit içeren formülüyle tüm cilt tipleri için yoğun nem sağlar.",
+  suitable: ["kuru", "normal", "hassas"],
+  alternatives: ["Neutrogena Hydro Boost", "Simple Replenishing Moisturiser"],
+  image: "https://cdn.cerave.com.tr/products/packshots/cerave-moisturizing-cream-177ml.png"
+},
+"neutrogena hydro boost": {
+  info: "Jel dokulu, hafif ve hızlı emilen yapı. Yağlı ve karma ciltler için idealdir.",
+  suitable: ["yagli", "karma", "normal"],
+  alternatives: ["Garnier Nem Bombası", "Cerave Losyon"],
+  image: "https://cdn.neutrogena.com.tr/media/catalog/product/h/y/hydro-boost-aqua-gel.png"
+},
+"simple hydrating light moisturiser": {
+  info: "Hassas ciltler için parfümsüz hafif nemlendirici. Günlük kullanım için uygundur.",
+  suitable: ["hassas", "normal", "karma"],
+  alternatives: ["Sebamed Moisturizer", "La Roche-Posay Toleriane"],
+  image: "https://www.simple.co.uk/sk-eu/content/dam/brands/simple/global_use/simple_hydrating_light_moisturiser_125ml.jpg"
+},
+"sebamed nemlendirici krem": {
+  info: "PH 5.5 dengesiyle cilt bariyerini korur. Kuru ve hassas ciltler için idealdir.",
+  suitable: ["kuru", "hassas"],
+  alternatives: ["Bepanthol Krem", "Simple Moisturiser"],
+  image: "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSJVelB1OhdgPtTLy9UDE0GH-Mg49-Q8sHCqFX2JAEKYJjABz2-cqtMq1J9TAxh8UTPoMAFKVp-N_j0QFkJhwVGdAvMDai9RqLyUMBwA4youOAcgcjZAqMxeg"
+},
+"garnier nem bombası krem": {
+  info: "Uzun süreli nemlendirme etkisiyle ferahlık sağlar. Hyaluronik asit içerir.",
+  suitable: ["karma", "normal"],
+  alternatives: ["Neutrogena Hydro Boost", "Cerave Nemlendirici"],
+  image: "https://m.media-amazon.com/images/I/71r0tgG5TbL._AC_SL1500_.jpg"
+},
+"bepanthol nemlendirici krem": {
+  info: "Panthenol içeriği ile cildi onarır ve nemlendirir. Hassas ciltler için uygundur.",
+  suitable: ["kuru", "hassas", "normal"],
+  alternatives: ["Sebamed Nemlendirici", "Simple Moisturiser"],
+  image: "https://productimages.hepsiburada.net/s/777/960-1280/110000767125120.jpg/format:webp"
+},
+"cetaphil moisturizing cream": {
+  info: "Yatıştırıcı ve nemlendirici etkisiyle cilt bariyerini güçlendirir. Parfümsüzdür.",
+  suitable: ["hassas", "kuru", "normal"],
+  alternatives: ["Cerave Nemlendirici", "Sebamed Krem"],
+  image: "https://productimages.hepsiburada.net/s/777/960-1280/110000836955258.jpg"
+},
+"avene hydrance rich": {
+  info: "Avene termal su içeren yoğun nemlendirici krem. Kuru ve hassas ciltleri rahatlatır.",
+  suitable: ["kuru", "hassas"],
+  alternatives: ["Cetaphil", "Cerave"],
+  image: "https://witcdn.dermoeczanem.com/avene-hydrance-rich-nemlendirici-krem-40-ml-avene-132951-57-B.jpg"
+},
+"bioderma atoderm krem ultra": {
+  info: "Yoğun nemlendirme ve cilt bariyerini onarma özelliğiyle çok kuru ve atopik ciltler için ideal bir kremdir. Parfümsüzdür ve hassas ciltlerde rahatlıkla kullanılır.",
+  suitable: ["kuru", "hassas"],
+  alternatives: ["Cerave Nemlendirici Krem", "Avene Hydrance Rich"],
+  image: "https://www.bioderma.com.tr/sites/default/files/styles/product_full/public/2021-10/atoderm-ultra-nourishing-cream.png"
+}
+};
+
+
+    const productInput = document.getElementById("productInput");
+    const suggestions = document.getElementById("suggestions");
+    const formSection = document.getElementById("form-section");
+    const resultSection = document.getElementById("result-section");
+    const resultCard = document.getElementById("resultCard");
+
+    productInput.addEventListener("input", () => {
+      const query = productInput.value.toLowerCase().trim();
+      suggestions.innerHTML = "";
+      if (!query) {
+        suggestions.classList.add("hidden");
+        return;
+      }
+      const matched = Object.keys(productDB).filter(p => p.includes(query));
+      if (matched.length) {
+        matched.forEach(match => {
+          const div = document.createElement("div");
+          div.textContent = match;
+          div.onclick = () => {
+            productInput.value = match;
+            suggestions.innerHTML = "";
+            suggestions.classList.add("hidden");
+          };
+          suggestions.appendChild(div);
+        });
+        suggestions.classList.remove("hidden");
+      } else {
+        suggestions.classList.add("hidden");
+      }
+    });
+
+    document.getElementById("productForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const name = productInput.value.toLowerCase().trim();
+      const type = document.getElementById("skinType").value;
+      const product = productDB[name];
+
+      if (!product) {
+        resultCard.innerHTML = `<p class="message-red">Bu ürün veritabanımızda yok. <a href="mailto:destek@skinpharma.com" class="text-blue-600 underline">Bize ulaşın</a></p>`;
+      } else {
+        const suitable = product.suitable.includes(type);
+        let suggestion = "";
+        if (!suitable) {
+          suggestion = `
+            <p class="mt-2 font-semibold text-indigo-700">Cilt tipinize uygun alternatif ürünler:</p>
+            <ul class="suggestion-list">${product.alternatives.map(a => `<li>${a}</li>`).join('')}</ul>
+          `;
+        }
+
+        resultCard.innerHTML = `
+          <img src="${product.image}" alt="${name}" />
+          <h3 class="result-header">${name}</h3>
+          <p>${product.info}</p>
+          <p class="${suitable ? 'message-green' : 'message-red'} mt-4">
+            Bu ürün ${suitable ? 'cilt tipinize uygundur.' : 'cilt tipinize uygun değildir.'}
+          </p>
+          ${suggestion}
+        `;
+      }
+
+      formSection.classList.add("hidden");
+      resultSection.classList.remove("hidden");
+      suggestions.classList.add("hidden");
+    });
+
+    function goBack() {
+      resultSection.classList.add("hidden");
+      formSection.classList.remove("hidden");
+      productInput.value = "";
+      suggestions.innerHTML = "";
+      suggestions.classList.add("hidden");
+      productInput.focus();
+    }
+  </script>
+</body>
+<div class="flex justify-between items-center max-w-3xl mx-auto py-4 px-8">
+  <h1 class="text-2xl font-semibold text-center flex-grow text-gray-700">SkinPharma</h1>
+  <button id="logoutBtn" 
+    class="ml-4 bg-red-200 hover:bg-red-300 text-red-700 font-semibold py-2 px-4 rounded-full shadow text-sm transition-colors duration-300">
+    Çıkış Yap
+  </button>
+</div>
+  <p id="welcomeMsg" class="text-center text-lg mb-8 subtitle max-w-3xl mx-auto"></p>
+
+  <!-- Form ve sonuç bölümleri aşağıda devam eder... -->
+
+  <script>
+    // Mevcut kodlar...
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('skinpharmaUser');
+      window.location.href = 'login.html';
+    });
+  </script>
+</body>
+</html>
